@@ -21,9 +21,9 @@ module Rical
     end
   end
 
-  def inverse_for f:, y: 0.0, **args
-    f_1= -> (x) { f.call(x) - Float(y) }
-    root_for f: f_1, **args
+  def inverse_for f:, fargs: nil, y: 0.0, **args
+    f_1 = compute_f_1 f, fargs, y
+    root_for f: f_1, fargs: fargs, **args
   end
   alias_method :inv_for, :inverse_for
 
@@ -53,8 +53,14 @@ private
   end
 
   def compute f, x, fargs
-    return f.call x          unless fargs
-    return f.call x, **fargs if     fargs.is_a? Hash
-    return f.call x, *fargs
+    return f.call(x         ) unless fargs
+    return f.call(x, **fargs) if     fargs.is_a? Hash
+    return f.call(x,  *fargs)
+  end
+
+  def compute_f_1 f, fargs, y
+    return -> (x       ) { f.call(x)          - Float(y) } unless fargs
+    return -> (x, **arg) { f.call(x, **fargs) - Float(y) } if     fargs.is_a? Hash
+    return -> (x,  *arg) { f.call(x,  *fargs) - Float(y) }
   end
 end
