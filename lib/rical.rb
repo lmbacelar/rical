@@ -30,10 +30,10 @@ module Rical
 private
   def newton_raphson_root_for f, fargs, df, dfargs, x, n, err
     n.times do
-      fx  = compute  f, x, fargs
-      dfx = compute df, x, dfargs
-      dfx = [1e-3, err * 1e3].max if dfx == 0.0
-      x = x - ( fx / dfx )
+      fx    = compute  f, x, fargs
+      slope = compute df, x, dfargs
+      slope = 10 * err if slope == 0
+      x = x - fx / slope
       return x if compute(f, x, fargs).abs < err
     end
     raise NoConvergenceError
@@ -43,9 +43,11 @@ private
     n.times do
       fx0 = compute f, x0, fargs
       fx1 = compute f, x1, fargs
-      delta = fx1 - fx0
-      delta = [1e-3, err * 1e3].max if delta == 0.0
-      x = x1 - (fx1 * (x1 - x0)) / delta
+      delta = x1 - x0
+      delta = 10 * err if delta == 0
+      slope = (fx1 - fx0) / delta
+      slope = 10 * err if slope == 0
+      x = x1 - fx1 / slope
       return x if compute(f, x, fargs).abs < err
       x0, x1 = x1, x
     end
